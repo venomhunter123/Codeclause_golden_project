@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coding Survey System</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #8e9eab, #eef2f3);
+      overflow: hidden;
+      animation: gradientAnimation 10s infinite alternate;
+    }
+
+    @keyframes gradientAnimation {
+      0% {
+        background-position: 0% 50%;
+      }
+      100% {
+        background-position: 100% 50%;
+      }
+    }
+
+    .form-container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input,
+    select,
+    button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #questionsContainer {
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="form-container" id="authForm">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <div class="form-container" id="surveyForm">
+    <h2>Coding-Based Survey</h2>
+    <div id="questionsContainer"></div>
+    <button id="submitSurveyButton" style="display: none;" onclick="submitSurvey()">Submit Survey</button>
+  </div>
+
+  <script>
+    const adminCredentials = { username: 'admin', password: 'admin' };
+    let currentUser = null;
+    let surveys = [];
+
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (username === adminCredentials.username && password === adminCredentials.password) {
+        currentUser = { ...adminCredentials, role: 'admin' };
+        initializeSurveyWithGeneralQuestions();
+        showAppropriateForm();
+      } else {
+        alert('Invalid username or password');
+      }
+    }
+
+    function initializeSurveyWithGeneralQuestions() {
+      // Predefined coding-based survey questions
+      surveys.push({
+        surveyTitle: 'Coding Survey',
+        questions: [
+          { questionType: 'multipleChoice', questionText: 'What is HTML used for?' },
+          { questionType: 'openEnded', questionText: 'Explain the difference between var, let, and const in JavaScript.' },
+          // Add more coding-related questions as needed
+        ]
+      });
+
+      renderQuestions();
+      showSubmitButton();
+    }
+
+    function showAppropriateForm() {
+      document.getElementById('authForm').style.display = 'none';
+
+      if (currentUser && currentUser.role === 'admin') {
+        document.getElementById('surveyForm').style.display = 'block';
+      }
+    }
+
+    function renderQuestions() {
+      const questionsContainer = document.getElementById('questionsContainer');
+      questionsContainer.innerHTML = '';
+
+      surveys.forEach(survey => {
+        const surveyElement = document.createElement('div');
+        surveyElement.classList.add('question');
+        surveyElement.innerHTML = `<h3>${survey.surveyTitle}</h3>`;
+
+        survey.questions.forEach((question, index) => {
+          const questionElement = document.createElement('div');
+          questionElement.classList.add('question');
+          questionElement.innerHTML = `<strong>${index + 1}. ${question.questionText}</strong>`;
+
+          if (question.questionType === 'multipleChoice') {
+            // Add radio buttons for multiple-choice questions
+            questionElement.innerHTML += `
+              <input type="radio" name="question_${index}" value="option1"> Option 1
+              <input type="radio" name="question_${index}" value="option2"> Option 2
+              <input type="radio" name="question_${index}" value="option3"> Option 3
+            `;
+          } else if (question.questionType === 'openEnded') {
+            // Add a text input for open-ended questions
+            questionElement.innerHTML += '<input type="text" placeholder="Your answer">';
+          }
+
+          surveyElement.appendChild(questionElement);
+        });
+
+        questionsContainer.appendChild(surveyElement);
+      });
+
+      questionsContainer.style.display = 'block';
+    }
+
+    function showSubmitButton() {
+      const submitButton = document.getElementById('submitSurveyButton');
+      submitButton.style.display = 'block';
+    }
+
+    function submitSurvey() {
+      const answers = [];
+
+      surveys.forEach(survey => {
+        const surveyTitle = survey.surveyTitle;
+        const surveyAnswers = [];
+
+        survey.questions.forEach((question, index) => {
+          const answer = {
+            question: question.questionText,
+            type: question.questionType,
+            response: ''
+          };
+
+          if (question.questionType === 'multipleChoice') {
+            const radioName = `question_${index}`;
+            const selectedOption = document.querySelector(`input[name="${radioName}"]:checked`);
+            answer.response = selectedOption ? selectedOption.value : 'Not answered';
+          } else if (question.questionType === 'openEnded') {
+            const userInput = document.querySelector(`input[type="text"][placeholder="Your answer"]`);
+            answer.response = userInput ? userInput.value : 'Not answered';
+          }
+
+          surveyAnswers.push(answer);
+        });
+
+        answers.push({
+          surveyTitle: surveyTitle,
+          userAnswers: surveyAnswers
+        });
+      });
+
+      // Display user's answers (you can customize this part)
+      console.log('User Answers:', answers);
+      alert('Survey submitted successfully!');
+    }
+  </script>
+</body>
+</html>
